@@ -16,6 +16,17 @@ def read_todo(todo_id: int):
         return todo
     return {"error": "Todo not found"}
 
+# how to get url query parameters in fastapi
+@app.get("/search")
+def search_todos(q: str = ""):
+    # results = [todo for todo in get_all() if q.lower() in todo.title.lower()]
+    # i dont want one line lambda functions
+    results = []
+    for todo in get_all():
+        if q.lower() in todo.title.lower():
+            results.append(todo)
+    return results
+
 @app.post("/todos")
 def create_todo(todo_data: CreateRequest):
     return create(todo_data)
