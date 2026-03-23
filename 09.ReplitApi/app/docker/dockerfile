@@ -1,17 +1,75 @@
-# Use an official Python runtime as a parent image
+# # Use an official Python runtime as a parent image
+# FROM python:3.11-slim
+
+# # Create a non-root user and switch to that user
+# RUN useradd -m sandboxuser
+
+# # Set the working directory in the container
+# WORKDIR /app 
+
+# # Install basic tools
+# RUN pip install --no-cache-dir fastapi uvicorn
+
+# EXPOSE 8000
+
+# #Switch Non root user
+# USER sandboxuser
+
+
+# CMD [ "sleep" , "infinity"]
+
+
+# FROM python:3.11-slim
+
+# RUN useradd -m sandboxuser
+
+# WORKDIR /app
+
+# RUN pip install --no-cache-dir fastapi uvicorn
+
+# EXPOSE 8000
+
+# USER sandboxuser
+
+# CMD ["sh", "-c", "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"]
+
+
+# FROM python:3.11-slim
+
+# # Create user first, then set up the workspace with correct ownership
+# RUN useradd -m sandboxuser && mkdir -p /app && chown sandboxuser:sandboxuser /app
+
+# # Install uvicorn as root so it's available system-wide
+# RUN pip install --no-cache-dir uvicorn
+
+# WORKDIR /app
+
+# # Switch to sandboxuser — pip installs will go to ~/.local/bin
+# USER sandboxuser
+
+# # Make sure ~/.local/bin is on PATH so uvicorn and installed CLIs are found
+# ENV PATH="/home/sandboxuser/.local/bin:$PATH"
+
+# EXPOSE 8000
+
+# # No CMD needed — overridden by sleep infinity at runtime
+
+
 FROM python:3.11-slim
 
-# Create a non-root user and switch to that user
-RUN useradd -m sandboxuser
+# Install system utilities:
+# - util-linux  → provides setsid (detach process from exec session)
+# - procps      → provides ps, kill (useful for debugging inside container)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    util-linux \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container
-WORKDIR /app 
+# Pre-install uvicorn so it's always available regardless of user's requirements.txt
+RUN pip install --no-cache-dir uvicorn
 
-# Install basic tools
-RUN pip install --no-cache-dir fastapi uvicorn
+WORKDIR /app
 
-#Switch Non root user
-USER sandboxuser
+EXPOSE 8000
 
-
-CMD [ "sleep" , "infinity"]
+# No CMD — create_container() overrides it with "sleep infinity" anyway
