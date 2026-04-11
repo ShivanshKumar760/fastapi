@@ -1,0 +1,28 @@
+# version: "3.9"
+
+# services:
+#   api:
+#     build: .
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+
+#   python_runner:
+#     build: ./docker/python
+#     image: python_runner
+
+#   node_runner:
+#     build: ./docker/node
+#     image: node_runner
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: api # ← needed so volumes_from can reference it by name
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./temp_jobs:/temp_jobs # ← api owns this volume
